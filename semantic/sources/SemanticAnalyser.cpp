@@ -85,7 +85,7 @@ void SemanticAnalyser::run() {
             statements.insert(sx);
         }
         catch (semantic_exception& e) {
-            cerr << "\033[1;31mErro semântico: \033[37;1m\033[0m" << e.message() << endl;
+        //    cerr << "\033[1;31mErro semântico: \033[37;1m\033[0m" << e.message() << endl;
         }
     }
 
