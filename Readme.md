@@ -1,17 +1,18 @@
-# Compilador da linguagem Dartmouth Basic
+# Extensões ao Compilador da linguagem Dartmouth Basic
 Projeto para a disciplina PCS3866 - Linguagens e Compiladores
 Felipe Fernandes de Lima
+
+# Extensões adicionadas
+    Expressões aritméticas:
+        - Tratamento do sinal de menos unário
+        - Operação de potenciação com precedência sobre as demais
+        - Funções com zero ou mais parâmetros
+    Analisador Léxico como reconhecedor descendente
+    Analisador Sintático com recuperação de erros do tipo Modo de Pânico
 
 # Códigos tratados:
     Entrada: Dartmouth Basic
     Saída: Assembly para ARM7TDMI
-
-# Módulos:
-    Léxico: Faz o tratamento do código fonte de entrada para gerar lexemas previstos na linguagem
-    Sintático: Interpreta construções sintáticas entre lexemas e produz a representação sintática do programa
-    Semântico: Percorre os elementos sintáticos para buscar problemas de significado e processar expressões aritméticas
-    Geração: Obtém a representação sintática tratada pelo semântico para convertê-la em código objeto
-    Main: Módulo de chamada do programa. Também oferece funções para teste dos demais módulos
 
 # Instruções de chamada:
     Chamada comum ao compilador:
