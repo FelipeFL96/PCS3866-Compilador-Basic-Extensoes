@@ -16,6 +16,8 @@ class SyntaxAnalyser {
 
         syntax::BStatement* get_next(void);
 
+        bool has_error();
+
     private:
         enum class method {REQUIRED, OPTIONAL, LOOKAHEAD};
         bool consume(lexic::type type, method m);
@@ -52,6 +54,7 @@ class SyntaxAnalyser {
         lexic::LexicalAnalyser lex;
         lexic::token tk;
         bool token_consumed = true;
+        bool error = false;
 };
 
 } // namespace syntax

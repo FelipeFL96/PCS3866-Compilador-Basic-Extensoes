@@ -81,8 +81,16 @@ void SemanticAnalyser::run() {
             continue;
         }
 
-        statements.insert(sx);
+        try {
+            statements.insert(sx);
+        }
+        catch (semantic_exception& e) {
+            cerr << "\033[1;31mErro semântico: \033[37;1m\033[0m" << e.message() << endl;
+        }
     }
+
+    if (stx.has_error())
+        return;
 
     if (!dynamic_cast<End*>(*statements.rbegin()))
         throw semantic_exception((*statements.rbegin())->get_position(), "Programa não termina com comando END");

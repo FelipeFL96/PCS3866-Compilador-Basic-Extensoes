@@ -13,6 +13,9 @@ using namespace syntax;
 SyntaxAnalyser::SyntaxAnalyser(ifstream& file):
     file(file), lex(file) {}
 
+bool SyntaxAnalyser::has_error() {
+    return error;
+}
 
 bool SyntaxAnalyser::file_end() {
     if (token_consumed) {
@@ -33,41 +36,56 @@ BStatement* SyntaxAnalyser::get_next() {
 
     tk = lex.get_next();
 
-    switch (tk.type) {
-        case lexic::type::LET:
-            return parse_assign(index, tk.pos);
-        case lexic::type::READ:
-            return parse_read(index, tk.pos);
-        case lexic::type::DATA:
-            return parse_data(index, tk.pos);
-        case lexic::type::PRINT:
-            return parse_print(index, tk.pos);
-        case lexic::type::GO:
-        case lexic::type::GOTO:
-            return parse_goto(index, tk.pos);
-        case lexic::type::IF:
-            return parse_if(index, tk.pos);
-        case lexic::type::FOR:
-            return parse_for(index, tk.pos);
-        case lexic::type::NEXT:
-            return parse_next(index, tk.pos);
-        case lexic::type::DIM:
-            return parse_dim(index, tk.pos);
-        case lexic::type::DEF:
-            return parse_def(index, tk.pos);
-        case lexic::type::GOSUB:
-            return parse_gosub(index, tk.pos);
-        case lexic::type::RETURN:
-            return parse_return(index, tk.pos);
-        case lexic::type::REM:
-            return parse_rem(index, tk.pos);
-        case lexic::type::END:
-            return parse_end(index, tk.pos);
-        case lexic::type::EoF:
-            return nullptr;
-        default:
-            throw syntax_exception(tk.pos, string("Token inesperado: ") + tk.value);
+    try{
+        switch (tk.type) {
+            case lexic::type::LET:
+                return parse_assign(index, tk.pos);
+            case lexic::type::READ:
+                return parse_read(index, tk.pos);
+            case lexic::type::DATA:
+                return parse_data(index, tk.pos);
+            case lexic::type::PRINT:
+                return parse_print(index, tk.pos);
+            case lexic::type::GO:
+            case lexic::type::GOTO:
+                return parse_goto(index, tk.pos);
+            case lexic::type::IF:
+                return parse_if(index, tk.pos);
+            case lexic::type::FOR:
+                return parse_for(index, tk.pos);
+            case lexic::type::NEXT:
+                return parse_next(index, tk.pos);
+            case lexic::type::DIM:
+                return parse_dim(index, tk.pos);
+            case lexic::type::DEF:
+                return parse_def(index, tk.pos);
+            case lexic::type::GOSUB:
+                return parse_gosub(index, tk.pos);
+            case lexic::type::RETURN:
+                return parse_return(index, tk.pos);
+            case lexic::type::REM:
+                return parse_rem(index, tk.pos);
+            case lexic::type::END:
+                return parse_end(index, tk.pos);
+            case lexic::type::EoF:
+                return nullptr;
+            default:
+                throw syntax_exception(tk.pos, string("Token inesperado: ") + tk.value);
+        }
     }
+    catch (syntax_exception& e) {
+        error = true;
+        cerr << "\033[1;31mErro sintático: \033[37;1m\033[0m" << e.message() << endl;
+
+        while (!file.eof() && tk.type == lexic::type::INT) {
+            tk = lex.get_next();
+        }
+
+        token_consumed = false;
+        return new BStatement(index, tk.pos);
+    }
+
+    return nullptr;
 }
 
 
@@ -323,16 +341,60 @@ Exp* SyntaxAnalyser::parse_exp() {
     else if (consume(lexic::type::SUB, method::OPTIONAL))
         negative = true;
 
-    operands.push_back(parse_eb());
+
+    try {
+        operands.push_back(parse_eb());
+    }
+    catch (syntax_exception& e) {
+        error = true;
+        cerr << "\033[1;31mErro sintático: \033[37;1m\033[0m" << e.message() << endl;
+    }
 
     while (true) {
         Operator* op = parse_operator();
 
-        if(op == nullptr)
-            break;
+        try {
+            if (op == nullptr) {
+                if (tk.type == lexic::type::IDN) {
+                    throw syntax_exception(tk.pos, "Operador esperado antes do identificador: " + tk.value);
+                }
+                else if (tk.type == lexic::type::PRO) {
+                    throw syntax_exception(tk.pos, "Operador esperado antes de expressão");
+                }
+                else if (
+                    tk.type == lexic::type::FN
+                    || tk.type == lexic::type::FNSIN
+                    || tk.type == lexic::type::FNCOS
+                    || tk.type == lexic::type::FNTAN
+                    || tk.type == lexic::type::FNATN
+                    || tk.type == lexic::type::FNEXP
+                    || tk.type == lexic::type::FNABS
+                    || tk.type == lexic::type::FNLOG
+                    || tk.type == lexic::type::FNSQR
+                    || tk.type == lexic::type::FNINT
+                    || tk.type == lexic::type::FNRND
+                    ) {
+                    throw syntax_exception(tk.pos, "Operador esperado antes da chamada de função");
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        catch (syntax_exception& e) {
+            error = true;
+            cerr << "\033[1;31mErro sintático: \033[37;1m\033[0m" << e.message() << endl;
+        }
 
-        operators.push_back(op);
-        operands.push_back(parse_eb());
+
+        try {
+            operators.push_back(op);
+            operands.push_back(parse_eb());
+        }
+        catch (syntax_exception& e) {
+            error = true;
+            cerr << "\033[1;31mErro sintático: \033[37;1m\033[0m" << e.message() << endl;
+        }
     }
 
     return new Exp(Elem::EXP, negative, operands, operators);
