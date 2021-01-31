@@ -24,3 +24,6 @@ Felipe Fernandes de Lima
     Teste do Analisador Léxico:
         basicc <arquivo fonte> -L
 
+    Teste do Analisador Sintático:
+        basicc <arquivo fonte> -S
+
