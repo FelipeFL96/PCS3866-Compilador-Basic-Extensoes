@@ -11,7 +11,11 @@ enum class ascii_type {
     DIGIT,
     LETTER,
     SPECIAL,
-    DELIMITER
+    DELIMITER,
+    LOWER,
+    GREATER,
+    EQUAL,
+    DQUOTE
 };
 
 enum class type {

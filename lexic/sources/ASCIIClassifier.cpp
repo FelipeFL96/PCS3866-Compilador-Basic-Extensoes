@@ -73,16 +73,24 @@ ascii_type ASCIIClassifier::classify_character(char c) {
     )
         return ascii_type::LETTER;
     else if (
-        c == '!' || c == '@' || c == '#' || c == '%' || /*  ̈   */
+        c == '!' || c == '@' || c == '#' || c == '%'    /*  ̈   */||
         c == '&' || c == '*' || c == '(' || c == ')' || c == '_' ||
-        c == '+' || c == '-' || c == '='   /*  §  */ || c == '{' ||
+        c == '+' || c == '-'   /*  =  */   /*  §  */ || c == '{' ||
         c == '[' || c == 'a' || c == '}' || c == ']' || c == 'o' ||
-        c == '?' || c == '/'   /*  °  */ || c == '`' || /* ́   */
-        c == '^' || c == '~' || c == '<' || c == ',' || c == '>' ||
-        c == '.' || c == ':' || c == ';' || c == '|' || c == '\\'||
-        c == '"'
+        c == '?' || c == '/'   /*  °  */ || c == '`'    /* ́   */ ||
+        c == '^' || c == '~'   /*  <  */ || c == ','    /* >  */ ||
+        c == '.' || c == ':' || c == ';' || c == '|' || c == '\\'
+        /*  "  */
     )
         return ascii_type::SPECIAL;
+    else if ( c == '<')
+        return ascii_type::LOWER;
+    else if ( c == '>')
+        return ascii_type::GREATER;
+    else if ( c == '=')
+        return ascii_type::EQUAL;
+    else if ( c == '"')
+        return ascii_type::DQUOTE;
     else if (
         c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == EOF
     )

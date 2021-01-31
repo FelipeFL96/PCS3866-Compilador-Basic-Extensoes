@@ -22,6 +22,19 @@ class LexicalAnalyser {
         lexic::token read_comment();
         lexic::type categorize_token(std::string& value);
 
+
+        void Lex(token& lexeme);
+        void Wrd(token& lexeme);
+        void Int(token& lexeme);
+        void Spe(token& lexeme);
+        void Strg(token& lexeme);
+        void Chr(token& lexeme);
+        void A(token& lexeme);
+        void B(token& lexeme);
+        void C(token& lexeme);
+        void D(token& lexeme);
+
+        ascii_character c;
         std::ifstream& file;
         ASCIIClassifier ac;
         lexic::state analyser_state;

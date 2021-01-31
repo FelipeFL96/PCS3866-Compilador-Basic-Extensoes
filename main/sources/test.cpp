@@ -277,11 +277,15 @@ void stx_test(ifstream& file) {
 
 string ascii2name(lexic::ascii_type t) {
     switch (t) {
-        case lexic::ascii_type::UNKNOWN: return "UNKNOWN";
-        case lexic::ascii_type::DIGIT: return "DIGIT";
-        case lexic::ascii_type::LETTER: return "LETTER";
-        case lexic::ascii_type::SPECIAL: return "SPECIAL";
+        case lexic::ascii_type::UNKNOWN:   return "UNKNOWN";
+        case lexic::ascii_type::DIGIT:     return "DIGIT";
+        case lexic::ascii_type::LETTER:    return "LETTER";
+        case lexic::ascii_type::SPECIAL:   return "SPECIAL";
         case lexic::ascii_type::DELIMITER: return "DELIMITER";
+        case lexic::ascii_type::LOWER:     return "LOWER";
+        case lexic::ascii_type::GREATER:   return "GREATER";
+        case lexic::ascii_type::EQUAL:     return "EQUAL";
+        case lexic::ascii_type::DQUOTE:    return "DQUOTE";
     }
 }
 

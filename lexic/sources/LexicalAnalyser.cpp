@@ -11,7 +11,7 @@ using namespace std;
 using namespace lexic;
 
 LexicalAnalyser::LexicalAnalyser(ifstream& file):
-    file(file), ac(file), analyser_state(state::NORMAL) {}
+    c(' ', ascii_type::DELIMITER, position(0,0)), file(file), ac(file), analyser_state(state::NORMAL) {}
 
 token LexicalAnalyser::get_next() {
     token t;
@@ -46,69 +46,169 @@ void LexicalAnalyser::change_analyser_state(type type) {
 token LexicalAnalyser::extract_token() {
     token lexeme;
 
-    while (ac.peek_next().type == ascii_type::DELIMITER) {
-        ascii_character c = ac.get_next();
+    while (c.type == ascii_type::DELIMITER) {
+        c = ac.get_next();
         if (c.character == EOF)
             return lexeme;
     }
 
-    ascii_character c = ac.peek_next();
     lexeme.set_position(c.pos);
-
-    if (analyser_state == state::NUMBER && c.character == 'E') {
-        c = ac.get_next();
-        lexeme.add_char(c.character);
-        if (ac.peek_next().type == ascii_type::DIGIT || ac.peek_next().character == '+' || ac.peek_next().character == '-') {
-            return lexeme;
-        }
-    }
- 
-    if (c.type == ascii_type::LETTER) {
-        while (c.type == ascii_type::LETTER || c.type == ascii_type::DIGIT) {
-            lexeme.add_char(ac.get_next().character);
-            c = ac.peek_next();
-        }
-    }
-    else if (c.type == ascii_type::DIGIT) {
-        while (c.type == ascii_type::DIGIT) {
-            lexeme.add_char(ac.get_next().character);
-            c = ac.peek_next();
-            if (c.type == ascii_type::LETTER) {
-                if (c.character != 'E')
-                    throw lexical_exception(lexeme.pos, "Identificador inválido");
-                else
-                    break;
-            }
-        }
-    }
-    else if (c.type == ascii_type::SPECIAL) {
-        lexeme.add_char(ac.get_next().character);
-        if (c.character == '<') {
-            c = ac.peek_next();
-            if (c.character == '=' || c.character == '>') {
-                lexeme.add_char(ac.get_next().character);
-            }
-        } 
-        else if (c.character == '>') {
-            c = ac.peek_next();
-            if (c.character == '=') {
-                lexeme.add_char(ac.get_next().character);
-            }
-        }
-        else if (c.character ==  '"') {
-            do {
-                c = ac.get_next();
-                lexeme.add_char(c.character);
-                if (c.character != '"' && ac.peek_next().character == EOF)
-                    throw lexical_exception(lexeme.pos, "String não terminada. Esperando '\"'");
-            } while (c.character != '"');
-        }
-    }
-    else {
-        throw lexical_exception(lexeme.pos, "Caractere não reconhecido");
-    }
+    Lex(lexeme);
 
     return lexeme;
+}
+
+void LexicalAnalyser::Lex(token& lexeme) {
+    if (c.type == ascii_type::LETTER) {
+        Wrd(lexeme);
+    }
+    else if (c.type == ascii_type::DIGIT) {
+        Int(lexeme);
+    }
+    else if (
+        c.type == ascii_type::SPECIAL
+        || c.type == ascii_type::LOWER
+        || c.type == ascii_type::GREATER
+        || c.type == ascii_type::EQUAL
+    ) {
+        Spe(lexeme);
+    }
+    else if (c.type == ascii_type::DQUOTE) {
+        Strg(lexeme);
+    }
+}
+
+void LexicalAnalyser::Wrd(token& lexeme) {
+    //cout << "WRD | C = " << c.character << " | L = " << lexeme.value << endl;
+    if (analyser_state == state::NUMBER && c.character == 'E' && ac.peek_next().type == ascii_type::DIGIT) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+    }
+    else if (c.type == ascii_type::LETTER) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        A(lexeme);
+    }
+}
+
+void LexicalAnalyser::A(token& lexeme) {
+    //cout << "A | C = " << c.character << " | L = " << lexeme.value << endl;
+    if (c.type == ascii_type::LETTER) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        A(lexeme);
+    }
+    else if (c.type == ascii_type::DIGIT) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        A(lexeme);
+    }
+}
+
+void LexicalAnalyser::Int(token& lexeme) {
+    //cout << "INT | C = " << c.character << " | L = " << lexeme.value << endl;
+    if (c.type == ascii_type::DIGIT) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        B(lexeme);
+    }
+}
+
+void LexicalAnalyser::B(token& lexeme) {
+    //cout << "B | C = " << c.character << " | L = " << lexeme.value << endl;
+    if (c.type == ascii_type::DIGIT) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        B(lexeme);
+    }
+}
+
+void LexicalAnalyser::Spe(token& lexeme) {
+    //cout << "SPE | C = " << c.character << " | L = " << lexeme.value << endl;
+    if (c.type == ascii_type::SPECIAL) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+    }
+    if (c.type == ascii_type::LOWER) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        C(lexeme);
+    }
+    if (c.type == ascii_type::GREATER) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        D(lexeme);
+    }
+    if (c.type == ascii_type::EQUAL) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+    }
+}
+
+void LexicalAnalyser::C(token& lexeme) {
+    //cout << "C | C = " << c.character << " | L = " << lexeme.value << endl;
+    if (c.type == ascii_type::EQUAL)
+        return;
+    else if (c.type == ascii_type::GREATER)
+        return;
+}
+
+void LexicalAnalyser::D(token& lexeme) {
+    //cout << "D | C = " << c.character << " | L = " << lexeme.value << endl;
+    if (c.type == ascii_type::LETTER)
+        return;
+}
+
+void LexicalAnalyser::Strg(token& lexeme) {
+    //cout << "STR | C = " << c.character << " | L = " << lexeme.value << endl;
+    if (c.type == ascii_type::DQUOTE) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        Chr(lexeme);
+    }
+}
+
+void LexicalAnalyser::Chr(token& lexeme) {
+    //cout << "CHR | C = " << c.character << " | L = " << lexeme.value << endl;
+    if (c.type == ascii_type::LETTER) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        Chr(lexeme);
+    }
+    else if (c.type == ascii_type::DIGIT) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        Chr(lexeme);
+    }
+    else if (c.type == ascii_type::SPECIAL) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        Chr(lexeme);
+    }
+    else if (c.type == ascii_type::GREATER) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        Chr(lexeme);
+    }
+    else if (c.type == ascii_type::LOWER) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        Chr(lexeme);
+    }
+    else if (c.type == ascii_type::EQUAL) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        Chr(lexeme);
+    }
+    else if (c.type == ascii_type::DELIMITER) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+        Chr(lexeme);
+    }
+    else if (c.type == ascii_type::DQUOTE) {
+        lexeme.add_char(c.character);
+        c = ac.get_next();
+    }
 }
 
 token LexicalAnalyser::read_comment() {
