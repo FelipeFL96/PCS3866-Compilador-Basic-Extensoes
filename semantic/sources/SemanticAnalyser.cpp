@@ -85,7 +85,8 @@ void SemanticAnalyser::run() {
             statements.insert(sx);
         }
         catch (semantic_exception& e) {
-        //    cerr << "\033[1;31mErro semântico: \033[37;1m\033[0m" << e.message() << endl;
+            if (!stx.has_error())
+                throw e;
         }
     }
 
@@ -152,7 +153,7 @@ void SemanticAnalyser::run() {
 
     gen.generate_variables();
 
-    symb_table.print_variables();
+    //symb_table.print_variables();
 }
 
 void SemanticAnalyser::process_assign(syntax::Assign* assign) {

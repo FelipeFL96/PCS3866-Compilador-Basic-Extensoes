@@ -31,12 +31,12 @@ BStatement* SyntaxAnalyser::get_next() {
     if (file_end())
         return nullptr;
 
-    consume(lexic::type::INT, method::REQUIRED);
-    index = stoi(tk.value);
-
-    tk = lex.get_next();
-
     try{
+        consume(lexic::type::INT, method::REQUIRED);
+        index = stoi(tk.value);
+
+        tk = lex.get_next();
+
         switch (tk.type) {
             case lexic::type::LET:
                 return parse_assign(index, tk.pos);
@@ -77,7 +77,7 @@ BStatement* SyntaxAnalyser::get_next() {
         error = true;
         cerr << "\033[1;31mErro sintático: \033[37;1m\033[0m" << e.message() << endl;
 
-        while (!file.eof() && tk.type == lexic::type::INT) {
+        while (!file.eof() && tk.type != lexic::type::INT) {
             tk = lex.get_next();
         }
 
