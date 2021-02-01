@@ -231,7 +231,7 @@ void SemanticAnalyser::process_data(syntax::Data* data) {
 }
 
 void SemanticAnalyser::process_print(syntax::Print* print) {
-    cout << "Geração para PRINT não implementada" << endl;
+
 }
 
 void SemanticAnalyser::process_goto(Goto* go) {
